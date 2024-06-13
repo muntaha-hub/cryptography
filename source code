@@ -1,0 +1,214 @@
+import random
+import sys
+
+def main():
+    sentence = get_user_input()  # prompt user to enter a sentence
+    secret_key = get_secret_key()  # generate a secret key
+    encrypt_dict = encrypt(sentence, secret_key)  # encrypt sentence
+
+    decrypt_lst = continue_decrypt()  # prompt user if they want to continue, and to enter secret key and cipher text
+    execute_decryption(decrypt_lst)  # decrypts the cipher text into user's sentence and prints it
+
+
+# HELPER FUNCTIONS BELOW THIS POINT
+
+def get_user_input():
+    """
+    This function inputs a sentence from the user in the form of a string.
+
+    Parameters: none
+    Returns: user's sentence
+    """
+    sentence = input(str('Enter a sentence: '))
+    print('')
+    return sentence
+
+
+def get_secret_key():
+    """
+    This function generates a secret key
+
+    Parameters: none
+    Returns: secret key
+    """
+    secret_key = random.randint(100, 102)
+    return secret_key
+
+
+def encrypt(sentence, secret_key):
+    """
+    This function encrypts the user's sentence. 
+
+    Parameters: user's sentence
+    Returns: encrypted dictionary
+    """
+    sentence_dict = create_sentence_dict(sentence)
+    alpha_dict = create_alphabet_dict()
+    encrypt_dict = create_encrypted_dict(sentence_dict, alpha_dict, secret_key)
+    
+    cipher_text_lst = []
+    for key in encrypt_dict: 
+        cipher_text_lst.append(encrypt_dict.get(key))  # convert encrypt_dict into cipher text
+    
+    print('Your cipher text is: ' + ''.join(cipher_text_lst))  # print cipher text 
+    print('Your secret key is: ' + str(secret_key))  # print secret key
+    print('')
+
+    return encrypt_dict
+
+
+def create_sentence_dict(sentence):
+    """
+    This function converts the user's sentence into a dictionary.
+
+    Parameters: user's sentence
+    Returns: sentence dictionary
+    """
+    sentence_dict = {}  # create dictionary for user's sentence
+    character_count = len(sentence)  # determine length of sentence
+    for i in range(character_count):
+        sentence_dict[i] = sentence[i]  # add characters in sentence to sentence dictionary
+
+    return sentence_dict
+
+
+def create_alphabet_dict():
+    """
+    This function creates a new dictionary containing alpha-numeric
+    characters in the Roman language.
+
+    Parameters: none
+    Returns: alphabet dictionary
+    """
+    alpha_list = list('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ')
+    alpha_dict = {i: alpha_list[i] for i in range(len(alpha_list))}
+    return alpha_dict
+
+
+def create_encrypted_dict(sentence_dict, alpha_dict, secret_key):
+    """
+    This function returns an 'encrypted dictionary' by taking in a secret key, 
+    generating and referencing a 'conversion dictionary', which is in turn is used for referencing
+    the 'alphabet dictionary', then reassigning the values in the 'sentence dictionary' 
+    into the 'encrypted dictionary'.
+
+    Parameters: sentence dictionary, alphabet dictionary, secret key
+    Returns: encrypted dictionary
+    """
+    encrypt_dict = {}
+
+    conv_dict = get_conversion_dict(alpha_dict, secret_key)  # generate conversion dictionary from secret key
+    
+    for key1 in sentence_dict:  # go through keys in sentence dictionary
+        val = sentence_dict[key1]  # extract the values
+        for key2 in conv_dict:  # go through keys in conversion dictionary
+            val_2 = conv_dict[key2]  # extract the values
+            if val_2 == val:  # if the values match...
+                encrypt_dict[key1] = alpha_dict.get(key2)  # assign the key in the encrypt_dict, a value from alpha_dict (based on key from conv_dict)
+    
+    return encrypt_dict
+
+
+def get_conversion_dict(alpha_dict, secret_key):
+    """
+    This function converts the 'alphabet dictionary' into three variated 'conversion dictionaries' which can be 
+    identified by the secret key and used to convert the user's sentence between ciphered text.
+
+    Parameters: alphabet dictionary, secret key
+    Returns: conversion dictionary
+    """
+    ref_dict = alpha_dict
+
+    if secret_key == 100:  # shift down 5
+        ref_lst = list(ref_dict.values())
+        conv_dict_one = {}
+        for i in range(len(ref_lst)):
+            if i > 4:  # ignore the first 5 indexes
+                char = ref_lst[i]
+                conv_dict_one[i-5] = char
+        for i in range(len(ref_lst)):  # add first 5 characters in alphabet to end of dictionary
+            if i <= 4:
+                char = ref_lst[i]
+                conv_dict_one[i+(len(ref_lst)-5)] = char
+        return conv_dict_one
+
+    if secret_key == 101:  # shift down 10
+        ref_lst = list(ref_dict.values())
+        conv_dict_two = {}
+        for i in range(len(ref_lst)):
+            if i > 9:  # ignore the first 10 indexes
+                char = ref_lst[i]
+                conv_dict_two[i-10] = char
+        for i in range(len(ref_lst)):  # add first 10 characters in alphabet to end of dictionary
+            if i <= 9:
+                char = ref_lst[i]
+                conv_dict_two[i+(len(ref_lst)-10)] = char
+        return conv_dict_two
+
+    if secret_key == 102:  # shift down 15
+        ref_lst = list(ref_dict.values())
+        conv_dict_three = {}
+        for i in range(len(ref_lst)):
+            if i > 14:  # ignore the first 15 indexes
+                char = ref_lst[i]
+                conv_dict_three[i-15] = char
+        for i in range(len(ref_lst)):  # add first 15 characters in alphabet to end of dictionary
+            if i <= 14:
+                char = ref_lst[i]
+                conv_dict_three[i+(len(ref_lst)-15)] = char
+        return conv_dict_three
+
+
+def continue_decrypt():
+    """
+    This function asks the user if they want to decrypt their cipher text. If so, 
+    it asks them to enter the cypher text and secret key.
+
+    Parameters: none
+    Returns: cipher text, secret key (as a list)
+    """
+    decrypt_entry = input('Type "yes" to decrypt your message or press enter to end program: ')
+    
+    if decrypt_entry.lower() == 'yes':
+        print('')
+        cipher_text = input('Copy and paste your cipher text: ')  # these values are already stored in encrypted dictionary for reference
+        secret_key = input('Enter your secret key: ')
+    else:
+        sys.exit()
+
+    return [cipher_text, secret_key]
+
+
+def execute_decryption(decrypt_lst):
+    """
+    This function decrypts the cipher text using the provided secret key.
+
+    Parameters: decryption list containing cipher text and secret key
+    Returns: user's original sentence as plain text
+    """
+    secret_key = int(decrypt_lst.pop())  # remove secret key from decryption list
+    cipher_text = decrypt_lst.pop()  # remove cipher text from decryption list
+    alpha_dict = create_alphabet_dict()  # create alphabet dictionary (this is the same as the other one)
+    conv_dict = get_conversion_dict(alpha_dict, secret_key)  # get the conversion dictionary, based on secret key
+
+    # put cipher text into an encryption dictionary (key-value pairs are the same as the first encryp_dict)
+    encrypt_dict = {i: cipher_text[i] for i in range(len(cipher_text))}
+
+    # convert encryption dictionary to sentence dictionary using conversion dictionary
+    sentence_dict = {}
+    for key1 in encrypt_dict:
+        val = encrypt_dict[key1]
+        for key2 in alpha_dict:
+            val_2 = alpha_dict[key2]
+            if val_2 == val:
+                sentence_dict[key1] = conv_dict.get(key2)
+    
+    print('')
+
+    plain_text_lst = [sentence_dict.get(key) for key in sentence_dict]  # convert sentence_dict into plain text
+
+    print('Your original sentence was: ' + ''.join(plain_text_lst))  # print plain text 
+
+
+if __name__ == '__main__':
+    main()
